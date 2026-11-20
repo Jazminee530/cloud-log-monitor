@@ -1,4 +1,5 @@
 # Cloud Log Monitor — runnable local starter
+https://jazminee530.github.io/cloud-log-monitor/
 
 Python REST API that receives synthetic logs, puts work on a Redis-backed queue, saves events in PostgreSQL, and raises rule-based alerts for suspicious messages. Built as an **educational local project**, not a production SIEM.
 
