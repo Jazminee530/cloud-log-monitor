@@ -12,6 +12,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 15
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -23,6 +24,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 15
+    restart: unless-stopped
 
   api:
     build: .
@@ -41,16 +43,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
   worker:
     build: .
     command: ["rq", "worker", "--url", "redis://redis:6379/0", "--serializer", "json", "logs"]
     environment: *app_env
     depends_on:
-      api:
+      db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
