@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1120">
+<title>Dashboard · Cloud Log Monitor</title>
+<style>
+:root { color-scheme: dark; --bg:#090e19; --side:#0c1423; --panel:#111b2b; --panel2:#141f31; --border:#253249; --text:#e7edf8; --muted:#92a1b9; --green:#32d79a; --red:#ff7988; --amber:#ffba67; --blue:#70a7fa; }
+* { box-sizing: border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); }
+a { color:inherit; text-decoration:none; }
+button, input, select { font:inherit; }
+button { cursor:pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
+.layout { display:grid; grid-template-columns:238px minmax(0,1fr); min-height:100vh; }
+.sidebar { background:var(--side); border-right:1px solid var(--border); padding:27px 18px; display:flex; flex-direction:column; position:sticky; height:100vh; top:0; }
+.brand { display:flex; align-items:center; gap:12px; padding:0 9px; font-size:17px; font-weight:750; letter-spacing:-.45px; }
+.brand-icon { display:grid; place-items:center; background:rgba(50,215,154,.14); border:1px solid rgba(50,215,154,.32); border-radius:11px; width:42px; height:42px; color:var(--green); font-size:23px; }
+.brand small { display:block; color:var(--muted); font-size:11px; font-weight:500; letter-spacing:.6px; text-transform:uppercase; }
+.nav-label { color:#73849c; font-size:11px; letter-spacing:1.4px; font-weight:750; margin:40px 13px 10px; }
+.nav-link { display:flex; gap:12px; align-items:center; margin:4px 0; padding:11px 14px; border-radius:9px; font-weight:590; color:var(--muted); }
+.nav-link:hover { background:#19263a; color:var(--text); }
+.nav-link.active { color:var(--green); background:rgba(50,215,154,.10); }
+.nav-link .symbol { width:20px; text-align:center; font-size:16px; }
+.sidebar-footer { margin-top:auto; border-top:1px solid var(--border); padding:20px 13px 0; color:var(--muted); font-size:12px; }
+.sidebar-footer strong { display:block; color:var(--text); font-size:13px; margin-bottom:4px; }
+.content { width:100%; max-width:1650px; margin:0 auto; padding:38px 42px 48px; min-width:0; }
+.topline { display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:18px; margin-bottom:28px; }
+.eyebrow { color:var(--green); font-size:11px; font-weight:750; text-transform:uppercase; letter-spacing:1.9px; }
+h1 { font-size:30px; letter-spacing:-1.15px; margin:7px 0 5px; line-height:1.2; }
+h2 { font-size:16px; letter-spacing:-.25px; margin:0; }
+p { margin:0; }
+.subtle { color:var(--muted); }
+.controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-top:3px; }
+.status { display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:100px; padding:8px 12px; color:var(--muted); background:var(--panel); font-size:12px; font-weight:700; }
+.dot { width:7px; height:7px; background:var(--amber); border-radius:50%; box-shadow:0 0 0 4px rgba(255,186,103,.10); }
+.status.online .dot { background:var(--green); box-shadow:0 0 0 4px rgba(50,215,154,.11); }
+.status.offline .dot { background:var(--red); box-shadow:0 0 0 4px rgba(255,121,136,.12); }
+.btn { color:var(--text); background:var(--panel2); border:1px solid #32415a; border-radius:9px; padding:9px 14px; font-weight:650; }
+.btn:hover { border-color:#637a99; }
+.btn:disabled { opacity:.5; cursor:progress; }
+.switch { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; cursor:pointer; user-select:none; }
+.switch input { accent-color:var(--green); width:16px; height:16px; }
+.notice { background:#331c27; border:1px solid #855063; color:#ffbfcb; padding:12px 16px; border-radius:10px; margin-bottom:20px; }
+.notice[hidden] { display:none; }
+.cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:20px; }
+.card, .panel { background:var(--panel); border:1px solid var(--border); border-radius:14px; }
+.card { padding:21px 21px 17px; min-width:0; }
+.card-label { color:var(--muted); font-size:12px; font-weight:650; display:flex; justify-content:space-between; gap:10px; }
+.card-icon { display:grid; place-items:center; width:30px; height:30px; border-radius:8px; background:rgba(112,167,250,.13); color:var(--blue); font-size:17px; }
+.card-value { font-size:35px; line-height:1.3; letter-spacing:-1.3px; font-weight:750; margin-top:9px; }
+.card-detail { color:var(--muted); font-size:11px; margin-top:2px; }
+.row-panels { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(265px,1fr); gap:20px; margin-bottom:20px; }
+.panel { padding:22px; min-width:0; }
+.panel-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:20px; }
+.panel-note { font-size:12px; color:var(--muted); }
+.chart { display:flex; align-items:end; gap:10px; height:176px; padding:8px 0 0; border-bottom:1px solid #33415a; position:relative; }
+.chart::before { content:""; position:absolute; left:0; right:0; top:33%; border-top:1px dashed #28364a; }
+.chart::after { content:""; position:absolute; left:0; right:0; top:66%; border-top:1px dashed #28364a; }
+.barcol { display:flex; align-items:center; flex-direction:column; justify-content:flex-end; height:100%; flex:1; min-width:0; z-index:1; }
+.bar { border-radius:6px 6px 1px 1px; width:min(100%,35px); min-height:3px; background:linear-gradient(180deg,#56e1b1 0%,#178c7d 100%); transition:height .25s; }
+.bar:hover { filter:brightness(1.2); }
+.bar-label { color:#8e9eb8; font-size:10px; text-align:center; white-space:nowrap; margin-top:8px; }
+.donut-layout { display:flex; align-items:center; justify-content:center; gap:28px; min-height:188px; }
+.donut { width:164px; height:164px; border-radius:50%; display:grid; place-items:center; background:conic-gradient(#ff7988 0deg 0deg,#ffba67 0deg 0deg,#5b9dff 0deg 0deg); flex-shrink:0; }
+.donut-hole { display:flex; flex-direction:column; align-items:center; justify-content:center; width:118px; height:118px; border-radius:50%; background:var(--panel); }
+.donut-hole strong { font-size:29px; line-height:1.2; }
+.donut-hole span { font-size:11px; color:var(--muted); }
+.legend { display:grid; gap:11px; min-width:0; flex:1; max-width:180px; }
+.legend-line { display:flex; justify-content:space-between; gap:8px; color:var(--muted); font-size:12px; }
+.legend-line b { color:var(--text); }
+.legend-marker { display:inline-block; width:8px; height:8px; margin-right:7px; border-radius:2px; }
+.table-panel { margin-bottom:20px; }
+.table-controls { display:flex; gap:10px; flex-wrap:wrap; }
+.search, .filter { border:1px solid #31415a; background:#0c1626; color:var(--text); border-radius:8px; padding:8px 10px; min-height:36px; }
+.search { min-width:180px; width:220px; max-width:100%; }
+.filter { min-width:110px; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; text-align:left; }
+th { padding:13px 10px; font-weight:700; font-size:11px; letter-spacing:.65px; text-transform:uppercase; color:#8599b4; border-bottom:1px solid var(--border); }
+td { padding:14px 10px; border-bottom:1px solid #202c3e; vertical-align:middle; }
+tr:last-child td { border-bottom:0; }
+tr:hover td { background:rgba(255,255,255,.016); }
+.message { max-width:520px; overflow-wrap:anywhere; }
+.source { font-weight:650; color:#d5e0f3; }
+.time { white-space:nowrap; color:var(--muted); font-variant-numeric:tabular-nums; }
+.tag { font-size:11px; font-weight:700; border-radius:6px; display:inline-block; padding:3px 8px; text-transform:uppercase; letter-spacing:.35px; background:#21334b; color:#a9c4e9; white-space:nowrap; }
+.tag.high, .tag.critical, .tag.error { color:#ff8d99; background:rgba(255,121,136,.12); }
+.tag.medium, .tag.warning { color:#ffbe75; background:rgba(255,186,103,.12); }
+.tag.low, .tag.info { color:#85b9ff; background:rgba(112,167,250,.12); }
+.tag.debug { color:#bec9da; background:#273246; }
+.empty { text-align:center; color:var(--muted); padding:32px 10px; }
+.table-foot { color:var(--muted); font-size:11px; margin-top:13px; }
+.footer { color:#7c8da8; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:12px; }
+.footer a { color:#a4c6ff; }
+@media(max-width:1170px){.cards{grid-template-columns:repeat(2,minmax(0,1fr));}.row-panels{grid-template-columns:1fr;}}
+@media(max-width:760px){.layout{grid-template-columns:1fr;}.sidebar{position:static;height:auto;padding:14px 18px;}.brand{padding:0;}.nav-label,.sidebar-footer{display:none;}.nav{display:flex;gap:4px;margin-top:10px;overflow-x:auto;}.nav-link{flex-shrink:0;padding:8px 10px;font-size:12px;}.content{padding:22px 16px 35px;}h1{font-size:25px;}.topline{margin-bottom:23px;}.panel{padding:17px;}.donut-layout{gap:15px;}.cards{gap:10px;}.card{padding:15px;}.card-value{font-size:29px;}.card-label{font-size:11px;}.panel-head{align-items:start;flex-direction:column;}}
+@media(max-width:410px){.cards{grid-template-columns:1fr 1fr;}.donut-layout{flex-direction:column;}.legend{width:100%;max-width:220px;}.search{width:100%;}.table-controls{width:100%;}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important;}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-icon" aria-hidden="true">◈</div><div>Cloud Log Monitor<small>Security observability</small></div></div>
+    <div class="nav-label">WORKSPACE</div>
+    <nav class="nav" aria-label="Main navigation">
+      <a class="nav-link active" href="#overview"><span class="symbol">▦</span>Overview</a>
+      <a class="nav-link" href="#logs"><span class="symbol">≡</span>Event Logs</a>
+      <a class="nav-link" href="#alerts"><span class="symbol">⚑</span>Alerts</a>
+      <a class="nav-link" href="/docs"><span class="symbol">⌘</span>API Docs</a>
+    </nav>
+    <div class="sidebar-footer"><strong>Local demo environment</strong>Uses synthetic logs. No cloud connection or production security controls.</div>
+  </aside>
+  <main class="content" id="overview">
+    <div class="topline">
+      <div><div class="eyebrow">System overview</div><h1>Monitoring dashboard</h1><p class="subtle">Inspect recent events and rule-based security alerts.</p></div>
+      <div class="controls">
+        <span id="health" class="status"><span class="dot"></span><span id="health-text">Checking API…</span></span>
+        <label class="switch"><input type="checkbox" id="auto-refresh" checked> Auto refresh</label>
+        <button id="refresh" type="button" class="btn">↻ Refresh</button>
+      </div>
+    </div>
+    <div id="error" class="notice" role="alert" hidden></div>
+    <section class="cards" aria-label="Latest sample metrics">
+      <article class="card"><div class="card-label"><span>Processed logs</span><span class="card-icon" aria-hidden="true">≡</span></div><div class="card-value" id="metric-logs">—</div><div class="card-detail">Latest 100 processed events</div></article>
+      <article class="card"><div class="card-label"><span>Triggered alerts</span><span class="card-icon" aria-hidden="true">⚑</span></div><div class="card-value" id="metric-alerts">—</div><div class="card-detail">Latest 100 generated alerts</div></article>
+      <article class="card"><div class="card-label"><span>High severity</span><span class="card-icon" aria-hidden="true">!</span></div><div class="card-value" id="metric-high">—</div><div class="card-detail">High/critical alerts in sample</div></article>
+      <article class="card"><div class="card-label"><span>Log sources</span><span class="card-icon" aria-hidden="true">◉</span></div><div class="card-value" id="metric-sources">—</div><div class="card-detail">Unique sources in log sample</div></article>
+    </section>
+    <div class="row-panels">
+      <section class="panel" aria-labelledby="activity-title"><div class="panel-head"><div><h2 id="activity-title">Log activity</h2><p class="panel-note">Processed events over the last 12 hours</p></div><span class="panel-note" id="activity-total">—</span></div><div class="chart" id="activity-chart" role="img" aria-label="Log activity for the past 12 hours"></div></section>
+      <section class="panel" aria-labelledby="severity-title"><div class="panel-head"><div><h2 id="severity-title">Alert severity</h2><p class="panel-note">Distribution in latest 100 alerts</p></div></div><div class="donut-layout"><div class="donut" id="donut" role="img" aria-label="Severity distribution"><div class="donut-hole"><strong id="donut-total">0</strong><span>Alerts</span></div></div><div class="legend" id="legend"></div></div></section>
+    </div>
+    <section class="panel table-panel" id="logs" aria-labelledby="logs-title"><div class="panel-head"><div><h2 id="logs-title">Recent log events</h2><p class="panel-note">Newest events first · sample limited to 100</p></div><div class="table-controls"><input class="search" id="log-search" aria-label="Search logs" placeholder="Search messages or sources"><select class="filter" id="log-level" aria-label="Filter log level"><option value="">All levels</option><option>CRITICAL</option><option>ERROR</option><option>WARNING</option><option>INFO</option><option>DEBUG</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Source</th><th>Level</th><th>Message</th></tr></thead><tbody id="log-rows"><tr><td class="empty" colspan="4">Loading logs…</td></tr></tbody></table></div><p class="table-foot" id="log-count"></p></section>
+    <section class="panel table-panel" id="alerts" aria-labelledby="alerts-title"><div class="panel-head"><div><h2 id="alerts-title">Security alerts</h2><p class="panel-note">Recent rule-based detections · sample limited to 100</p></div><div class="table-controls"><input class="search" id="alert-search" aria-label="Search alerts" placeholder="Search rules or explanations"><select class="filter" id="alert-severity" aria-label="Filter alert severity"><option value="">All severities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Detection rule</th><th>Severity</th><th>Explanation</th></tr></thead><tbody id="alert-rows"><tr><td class="empty" colspan="4">Loading alerts…</td></tr></tbody></table></div><p class="table-foot" id="alert-count"></p></section>
+    <footer class="footer"><span id="updated">No refresh yet</span><span>Local demonstration · <a href="/docs">Explore the API</a></span></footer>
+  </main>
+</div>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const state = { logs:[], alerts:[], busy:false };
+  const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const tagClass = value => ['high','critical','medium','low','error','warning','info','debug'].includes(String(value).toLowerCase()) ? String(value).toLowerCase() : '';
+  const asDate = value => { const d = new Date(value); return Number.isNaN(d.getTime()) ? null : d; };
+  const asTime = value => { const d = asDate(value); return d ? d.toLocaleString(undefined, {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '—'; };
+  const fmt = value => Number(value).toLocaleString();
+  const emptyTable = (cols, text) => `<tr><td colspan="${cols}" class="empty">${escapeHTML(text)}</td></tr>`;
+
+  function renderLogs() {
+    const term = $('log-search').value.trim().toLowerCase();
+    const level = $('log-level').value;
+    const matches = state.logs.filter(l => (!level || l.level === level) && (!term || [l.source,l.message,l.event_id].some(v => String(v??'').toLowerCase().includes(term))));
+    $('log-rows').innerHTML = matches.length ? matches.slice(0,12).map(l => `<tr><td class="time">${escapeHTML(asTime(l.occurred_at))}</td><td class="source">${escapeHTML(l.source)}</td><td><span class="tag ${tagClass(l.level)}">${escapeHTML(l.level)}</span></td><td class="message">${escapeHTML(l.message)}</td></tr>`).join('') : emptyTable(4,'No matching log events');
+    $('log-count').textContent = `Showing ${Math.min(12,matches.length)} of ${matches.length} matching events (${state.logs.length} retrieved)`;
+  }
+  function renderAlerts() {
+    const term = $('alert-search').value.trim().toLowerCase();
+    const severity = $('alert-severity').value;
+    const matches = state.alerts.filter(a => (!severity || String(a.severity).toLowerCase() === severity) && (!term || [a.rule,a.explanation,a.event_id].some(v => String(v??'').toLowerCase().includes(term))));
+    $('alert-rows').innerHTML = matches.length ? matches.slice(0,12).map(a => `<tr><td class="time">${escapeHTML(asTime(a.created_at))}</td><td class="source">${escapeHTML(a.rule)}</td><td><span class="tag ${tagClass(a.severity)}">${escapeHTML(a.severity)}</span></td><td class="message">${escapeHTML(a.explanation)}</td></tr>`).join('') : emptyTable(4,'No matching security alerts');
+    $('alert-count').textContent = `Showing ${Math.min(12,matches.length)} of ${matches.length} matching alerts (${state.alerts.length} retrieved)`;
+  }
+  function renderActivity() {
+    const end = new Date();
+    end.setMinutes(0,0,0);
+    const hours = Array.from({length:12},(_,i) => { const d = new Date(end.getTime() - (11-i)*3600000); return {date:d,count:0}; });
+    for (const log of state.logs) { const d=asDate(log.processed_at || log.occurred_at); if (!d) continue; const idx=Math.floor((d.getTime()-hours[0].date.getTime())/3600000); if (idx>=0 && idx<12) hours[idx].count++; }
+    const max=Math.max(1,...hours.map(h=>h.count));
+    $('activity-chart').innerHTML = hours.map((h,i) => { const ht=h.count ? Math.max(8,Math.round(h.count/max*145)) : 3; const label = i%2===0 ? h.date.toLocaleTimeString(undefined,{hour:'numeric'}) : ''; return `<div class="barcol" title="${escapeHTML(h.date.toLocaleString())}: ${h.count} logs"><div class="bar" style="height:${ht}px"></div><div class="bar-label">${escapeHTML(label)}</div></div>`; }).join('');
+    const sum = hours.reduce((n,h)=>n+h.count,0);
+    $('activity-total').textContent = `${sum} recent events`;
+    $('activity-chart').setAttribute('aria-label',`${sum} processed events in the last 12 hourly bins`);
+  }
+  function renderSeverity() {
+    const groups=[{name:'High',color:'#ff7988',value:0},{name:'Medium',color:'#ffba67',value:0},{name:'Low / other',color:'#5b9dff',value:0}];
+    for(const alert of state.alerts){ const s=String(alert.severity).toLowerCase(); groups[s==='high'||s==='critical'?0:s==='medium'?1:2].value++; }
+    const total=state.alerts.length;
+    let deg=0;
+    const stops=groups.map(g => { const start=deg; deg+=total ? g.value/total*360 : 0; return `${g.color} ${start}deg ${deg}deg`; });
+    $('donut').style.background= total ? `conic-gradient(${stops.join(',')})` : '#26354b';
+    $('donut').setAttribute('aria-label',groups.map(g=>`${g.name}: ${g.value}`).join(', '));
+    $('donut-total').textContent=fmt(total);
+    $('legend').innerHTML=groups.map(g=>`<div class="legend-line"><span><i class="legend-marker" style="background:${g.color}"></i>${escapeHTML(g.name)}</span><b>${fmt(g.value)}</b></div>`).join('');
+  }
+  function render(){
+    $('metric-logs').textContent=fmt(state.logs.length);
+    $('metric-alerts').textContent=fmt(state.alerts.length);
+    $('metric-high').textContent=fmt(state.alerts.filter(a=>['high','critical'].includes(String(a.severity).toLowerCase())).length);
+    $('metric-sources').textContent=fmt(new Set(state.logs.map(l=>l.source)).size);
+    renderLogs(); renderAlerts(); renderActivity(); renderSeverity();
+  }
+  async function fetchJSON(path){const resp=await fetch(path,{cache:'no-store'});if(!resp.ok) throw new Error(`${path}: HTTP ${resp.status}`);return resp.json();}
+  async function refresh(){
+    if(state.busy) return;
+    state.busy=true; $('refresh').disabled=true;
+    try{
+      const [logs,alerts,health]=await Promise.all([fetchJSON('/logs?limit=100'),fetchJSON('/alerts?limit=100'),fetchJSON('/health')]);
+      if(!Array.isArray(logs)||!Array.isArray(alerts)) throw new Error('Unexpected API response');
+      state.logs=logs;state.alerts=alerts;
+      $('health').className='status '+(health.status==='ok'?'online':'offline');
+      $('health-text').textContent=health.status==='ok'?'API healthy':'API degraded';
+      $('error').hidden=true;
+      render();
+      $('updated').textContent=`Last updated ${new Date().toLocaleTimeString()}`;
+    }catch(err){
+      $('health').className='status offline';$('health-text').textContent='API unavailable';
+      $('error').textContent=`Could not refresh the dashboard: ${err.message}. Confirm that Docker Compose is running.`;
+      $('error').hidden=false;
+    }finally{state.busy=false;$('refresh').disabled=false;}
+  }
+  $('refresh').addEventListener('click',refresh);
+  $('log-search').addEventListener('input',renderLogs);
+  $('log-level').addEventListener('change',renderLogs);
+  $('alert-search').addEventListener('input',renderAlerts);
+  $('alert-severity').addEventListener('change',renderAlerts);
+  setInterval(()=>{if($('auto-refresh').checked && document.visibilityState==='visible')refresh();},15000);
+  refresh();
+})();
+</script>
+</body>
+</html>

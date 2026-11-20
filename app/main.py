@@ -76,3 +76,15 @@ def list_logs(limit: int = Query(50, ge=1, le=100), db: Session = Depends(get_db
 @app.get("/alerts", response_model=list[AlertOut])
 def list_alerts(limit: int = Query(50, ge=1, le=100), db: Session = Depends(get_db)):
     return db.scalars(select(Alert).order_by(Alert.id.desc()).limit(limit)).all()
+
+# CLOUD_LOG_MONITOR_DASHBOARD_ROUTE
+from pathlib import Path as _DashboardPath
+from fastapi.responses import FileResponse as _DashboardFileResponse
+
+
+@app.get("/dashboard", include_in_schema=False)
+def dashboard_page():
+    return _DashboardFileResponse(
+        _DashboardPath(__file__).resolve().parent / "static" / "dashboard.html",
+        media_type="text/html",
+    )
