@@ -98,3 +98,34 @@ GET /logs, /alerts, /jobs/{id} --> FastAPI
 - Secrets in `.env.example` are illustrative local defaults, not safe production credentials.
 - Add integration/load tests, structured logging, metrics, authentication, secure deployment, and infrastructure-as-code *before* claiming a cloud deployment on your resume.
 - AWS deployment is **not included** and will require its own infrastructure and cost monitoring.
+
+## Performance Benchmarking
+
+Evaluated the application using 100, 1,000, and
+10,000 synthetic log events with 10 concurrent
+API requests in a local Docker Compose environment.
+
+### Worker Scaling Results
+
+| Metric | 1 Worker | 4 Workers |
+|---|---:|---:|
+| Processing throughput | 5.28 logs/s | 16.22 logs/s |
+| Events persisted | 9,715/10,000 | 10,000/10,000 |
+| Alerts generated | 7,285 | 7,500 |
+| Benchmark status | Incomplete | PASS |
+
+### Key Findings
+
+- Improved background processing throughput by
+  approximately 3.07x by scaling Redis Queue
+  workers from one to four.
+- Successfully persisted all 10,000 synthetic
+  events and generated 7,500 expected alerts.
+- Completed the four-worker benchmark in 616.45
+  seconds.
+- Identified API latency and request throughput
+  tradeoffs under increased worker concurrency.
+
+All benchmarks were conducted locally using Docker
+Compose and synthetic data. Results are not
+representative of production infrastructure.
